@@ -29,7 +29,7 @@
 namespace ns3 {
 
 class MatrixBasedChannelModel;
-class ThreeGppAntennaArrayModel;
+class PhasedArrayModel;
 
 /**
  * Compute the eigenvector associated to the largest eigenvalue.
@@ -41,7 +41,7 @@ class ThreeGppAntennaArrayModel;
  * \param threshold difference threshold for consecutive iterations
  * \return the eigenvector associated to the largest eigenvalue
  */
-ThreeGppAntennaArrayModel::ComplexVector GetFirstEigenvector (MatrixBasedChannelModel::Complex2DVector A, uint32_t nIter, double threshold);
+PhasedArrayModel::ComplexVector GetFirstEigenvector (MatrixBasedChannelModel::Complex2DVector A, uint32_t nIter, double threshold);
 
 /**
  * Compute analog SVD beamforming for a given channel matrix.
@@ -55,7 +55,7 @@ ThreeGppAntennaArrayModel::ComplexVector GetFirstEigenvector (MatrixBasedChannel
  * \param A params
  * \return the beamforming vectors for the second and first dimension, respectively
  */
-std::pair<ThreeGppAntennaArrayModel::ComplexVector, ThreeGppAntennaArrayModel::ComplexVector> ComputeSvdBeamformingVectors (Ptr<const MatrixBasedChannelModel::ChannelMatrix> params);
+std::pair<PhasedArrayModel::ComplexVector, PhasedArrayModel::ComplexVector> ComputeSvdBeamformingVectors (Ptr<const MatrixBasedChannelModel::ChannelMatrix> params);
 
 } // namespace ns3
 
