@@ -26,6 +26,7 @@
 #include "ns3/qd-channel-model.h"
 #include "ns3/uniform-planar-array.h"
 #include "ns3/qd-channel-utils.h"
+#include  "ns3/thz-dir-antenna.h"
 
 NS_LOG_COMPONENT_DEFINE ("ThreeGppChannelExampleUtils");
 

@@ -30,6 +30,7 @@ namespace ns3 {
 
 class MatrixBasedChannelModel;
 class PhasedArrayModel;
+class THzDirectionalAntenna;
 
 /**
  * Compute the eigenvector associated to the largest eigenvalue.
