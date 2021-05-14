@@ -176,7 +176,7 @@ QdChannelModel::ReadNodesPosition ()
           NS_LOG_ERROR ("Position not found: " << nodePosition);
         }
 
- //     NS_ABORT_MSG_IF (!found, "Position not matched - did you install the mobility model before the channel is created");
+      NS_ABORT_MSG_IF (!found, "Position not matched - did you install the mobility model before the channel is created");
 
       rtIdToNs3IdMap.insert (std::make_pair (id, matchedNodeId));
       m_ns3IdToRtIdMap.insert (std::make_pair (matchedNodeId, id));
@@ -728,16 +728,16 @@ QdChannelModel::GetNewRTChannel (Ptr<const MobilityModel> aMob,
   uint32_t aId = aMob->GetObject<Node> ()->GetId ();
   uint32_t bId = bMob->GetObject<Node> ()->GetId ();
   uint32_t channelId = GetKey (aId, bId);
-
-  QdInfo qdInfo = m_qdInfoMap.at (channelId)[timestep];
-
-
-  NS_LOG_DEBUG ("timestep=" << timestep <<
+    NS_LOG_DEBUG ("timestep=" << timestep <<
                 ", aId=" << aId <<
                 ", bId=" << bId <<
                 ", m_ns3IdToRtIdMap[aId]=" << m_ns3IdToRtIdMap.at (aId) <<
                 ", m_ns3IdToRtIdMap[bId]=" << m_ns3IdToRtIdMap.at (bId) <<
                 ", channelId=" << channelId);
+  QdInfo qdInfo = m_qdInfoMap.at (channelId)[timestep];
+
+
+
 
   // channel coffecient H[u][s][n];
   // One Antenna per each device
@@ -771,8 +771,8 @@ QdChannelModel::GetNewRTChannel (Ptr<const MobilityModel> aMob,
       
 
      // double TxAntennaPatern = pow (10, aAntenna->GetTxGainDbAngle (aAngle)/20);
-      double TxAntennaPatern =1; //??????
-      std::complex<double> ray = pathGain * TxAntennaPatern * std::polar (1.0, initialPhase);
+      double TxAntennaPatern =1; // Applied in TeraSim
+      std::complex<double> ray = pathGain * TxAntennaPatern;// std::polar (1.0, initialPhase);
 
       NS_LOG_DEBUG ("qdInfo.delay_s[mpcIndex]=" << qdInfo.delay_s[mpcIndex] <<
                     ", qdInfo.phase_rad[mpcIndex]=" << qdInfo.phase_rad[mpcIndex] <<
