@@ -765,22 +765,22 @@ QdChannelModel::GetNewRTChannel (Ptr<const MobilityModel> aMob,
     {
       double initialPhase = -2 * M_PI * qdInfo.delay_s[mpcIndex] * m_frequency;
       std::complex<double> pathGain = pow (10, qdInfo.pathGain_dbpow[mpcIndex] / 20);
+      NS_LOG_DEBUG("----------------" <<"VALUE OF GAIN IN RT IS:"<<pathGain <<",:" <<qdInfo.pathGain_dbpow[mpcIndex]);
       
       Angles aAngle = Angles (qdInfo.azAod_rad[mpcIndex], qdInfo.elAod_rad[mpcIndex]);
       NS_LOG_DEBUG ("aAngle: " << aAngle);
       
 
      // double TxAntennaPatern = pow (10, aAntenna->GetTxGainDbAngle (aAngle)/20);
-      double TxAntennaPatern =1; // Applied in TeraSim
-      std::complex<double> ray = pathGain * TxAntennaPatern;// std::polar (1.0, initialPhase);
+     // double TxAntennaPatern =1; // Applied in TeraSim
+      std::complex<double> ray = pathGain;// std::polar (1.0, initialPhase);
 
       NS_LOG_DEBUG ("qdInfo.delay_s[mpcIndex]=" << qdInfo.delay_s[mpcIndex] <<
                     ", qdInfo.phase_rad[mpcIndex]=" << qdInfo.phase_rad[mpcIndex] <<
                     ", qdInfo.pathGain_dbpow[mpcIndex]=" << qdInfo.pathGain_dbpow[mpcIndex] <<
                     ", aAngle=" << aAngle <<
                     ", initialPhase=" << initialPhase <<
-                    ", pathGain=" << pathGain <<
-                    ", TxAntennaPatern=" << TxAntennaPatern);
+                    ", pathGain=" << pathGain);
       
       H[0][0][mpcIndex] += ray;
                 
