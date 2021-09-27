@@ -95,7 +95,7 @@ QdChannelModel::GetQdFilesList (const std::string& pattern)
 std::vector<double>
 QdChannelModel::ParseCsv (const std::string& str, bool toRad)
 {
-  NS_LOG_FUNCTION (this << str);
+ // NS_LOG_FUNCTION (this << str);
 
   std::stringstream ss (str);
   CsvReader csv (ss, ',');
@@ -241,7 +241,7 @@ QdChannelModel::ReadParaCfgFile ()
 void
 QdChannelModel::ReadQdFiles (QdChannelModel::RtIdToNs3IdMap_t rtIdToNs3IdMap)
 {
-  NS_LOG_FUNCTION (this);
+//  NS_LOG_FUNCTION (this);
 
   // QdFiles input
   NS_LOG_INFO ("m_path + m_scenario = " << m_path + m_scenario);
@@ -280,7 +280,7 @@ QdChannelModel::ReadQdFiles (QdChannelModel::RtIdToNs3IdMap_t rtIdToNs3IdMap)
           QdInfo qdInfo {};
           // the file has a line with the number of multipath components
           qdInfo.numMpcs = std::stoul (line, 0, 10);
-          NS_LOG_DEBUG ("numMpcs " << qdInfo.numMpcs);
+        //  NS_LOG_DEBUG ("numMpcs " << qdInfo.numMpcs);
 
           if (qdInfo.numMpcs > 0)
             {
@@ -723,22 +723,25 @@ QdChannelModel::GetNewRTChannel (Ptr<const MobilityModel> aMob,
   NS_LOG_FUNCTION (this << aMob << bMob << aAntenna);
 
   Ptr< MatrixBasedChannelModel::ChannelMatrix> channelParams = Create<MatrixBasedChannelModel::ChannelMatrix> ();
-
-  uint32_t timestep = GetTimestep ();
+ // static uint32_t objectCount = 0;     //200
+  uint32_t timestep = GetTimestep ();//objectCount;//GetTimestep ();
   uint32_t aId = aMob->GetObject<Node> ()->GetId ();
   uint32_t bId = bMob->GetObject<Node> ()->GetId ();
   uint32_t channelId = GetKey (aId, bId);
-    NS_LOG_DEBUG ("timestep=" << timestep <<
-                ", aId=" << aId <<
-                ", bId=" << bId <<
-                ", m_ns3IdToRtIdMap[aId]=" << m_ns3IdToRtIdMap.at (aId) <<
-                ", m_ns3IdToRtIdMap[bId]=" << m_ns3IdToRtIdMap.at (bId) <<
-                ", channelId=" << channelId);
+  //  NS_LOG_DEBUG ("objectCount:" <<objectCount <<
+                // ",timestep=" << timestep <<
+                // ", aId=" << aId <<
+                // ", bId=" << bId <<
+                // ", m_ns3IdToRtIdMap[aId]=" << m_ns3IdToRtIdMap.at (aId) <<
+                // ", m_ns3IdToRtIdMap[bId]=" << m_ns3IdToRtIdMap.at (bId) <<
+                // ", channelId=" << channelId);
   QdInfo qdInfo = m_qdInfoMap.at (channelId)[timestep];
 
-
-
-
+  // objectCount +=1;
+  //       if(objectCount >= 100)
+  //       {
+  //       objectCount =0;       //240
+  //       }
   // channel coffecient H[u][s][n];
   // One Antenna per each device
   // considering numMPCs cluster
