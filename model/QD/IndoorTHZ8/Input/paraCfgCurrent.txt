@@ -1,7 +1,7 @@
 ParameterName	ParameterValue
 environmentFileName	THZLectureRoom.xml
 indoorSwitch	1
-numberOfTimeDivisions	100
+numberOfTimeDivisions	4900
 referencePoint	[0,0,0]
 selectPlanesByDist	inf
 switchDiffuseComponent	0
