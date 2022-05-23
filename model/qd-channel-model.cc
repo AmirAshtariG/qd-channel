@@ -35,6 +35,7 @@
 #include <sstream>
 #include <ns3/node-list.h>
 #include "ns3/csv-reader.h"
+#include "ns3/thz-dir-antenna.h"
 
 
 namespace ns3 {
@@ -94,7 +95,7 @@ QdChannelModel::GetQdFilesList (const std::string& pattern)
 std::vector<double>
 QdChannelModel::ParseCsv (const std::string& str, bool toRad)
 {
-  NS_LOG_FUNCTION (this << str);
+ // NS_LOG_FUNCTION (this << str);
 
   std::stringstream ss (str);
   CsvReader csv (ss, ',');
@@ -240,7 +241,7 @@ QdChannelModel::ReadParaCfgFile ()
 void
 QdChannelModel::ReadQdFiles (QdChannelModel::RtIdToNs3IdMap_t rtIdToNs3IdMap)
 {
-  NS_LOG_FUNCTION (this);
+//  NS_LOG_FUNCTION (this);
 
   // QdFiles input
   NS_LOG_INFO ("m_path + m_scenario = " << m_path + m_scenario);
@@ -279,7 +280,7 @@ QdChannelModel::ReadQdFiles (QdChannelModel::RtIdToNs3IdMap_t rtIdToNs3IdMap)
           QdInfo qdInfo {};
           // the file has a line with the number of multipath components
           qdInfo.numMpcs = std::stoul (line, 0, 10);
-          NS_LOG_DEBUG ("numMpcs " << qdInfo.numMpcs);
+        //  NS_LOG_DEBUG ("numMpcs " << qdInfo.numMpcs);
 
           if (qdInfo.numMpcs > 0)
             {
@@ -481,8 +482,8 @@ QdChannelModel::ChannelMatrixNeedsUpdate (Ptr<const MatrixBasedChannelModel::Cha
 Ptr<const MatrixBasedChannelModel::ChannelMatrix>
 QdChannelModel::GetChannel (Ptr<const MobilityModel> aMob,
                             Ptr<const MobilityModel> bMob,
-                            Ptr<const ThreeGppAntennaArrayModel> aAntenna,
-                            Ptr<const ThreeGppAntennaArrayModel> bAntenna)
+                            Ptr<const PhasedArrayModel> aAntenna,
+                            Ptr<const PhasedArrayModel> bAntenna)
 {
   NS_LOG_FUNCTION (this << aMob << bMob << aAntenna << bAntenna);
 
@@ -534,8 +535,8 @@ QdChannelModel::GetChannel (Ptr<const MobilityModel> aMob,
 Ptr<const MatrixBasedChannelModel::ChannelMatrix>
 QdChannelModel::GetNewChannel (Ptr<const MobilityModel> aMob,
                                Ptr<const MobilityModel> bMob,
-                               Ptr<const ThreeGppAntennaArrayModel> aAntenna,
-                               Ptr<const ThreeGppAntennaArrayModel> bAntenna) const
+                               Ptr<const PhasedArrayModel> aAntenna,
+                               Ptr<const PhasedArrayModel> bAntenna) const
 {
   NS_LOG_FUNCTION (this << aMob << bMob << aAntenna << bAntenna);
 
@@ -659,6 +660,161 @@ QdChannelModel::GetNewChannel (Ptr<const MobilityModel> aMob,
 
   return channelParams;
 }
+
+
+
+Ptr<const MatrixBasedChannelModel::ChannelMatrix>
+QdChannelModel::GetRTChannel (Ptr<const MobilityModel> aMob,
+                              Ptr<const MobilityModel> bMob,
+                              Ptr<const THzDirectionalAntenna> aAntenna)
+{
+  NS_LOG_FUNCTION (this << aMob << bMob << aAntenna );
+
+  // Compute the channel keys
+  uint32_t aId = aMob->GetObject<Node> ()->GetId ();
+  uint32_t bId = bMob->GetObject<Node> ()->GetId ();
+
+  uint32_t channelId = GetKey (aId, bId);
+
+
+  NS_LOG_DEBUG ("channelId " << channelId <<
+                ", ns-3 aId=" << aId << " bId=" << bId <<
+                ", RT sim. aId=" << m_ns3IdToRtIdMap[aId] << " bId=" << m_ns3IdToRtIdMap[bId]);
+
+  // Check if the channel is present in the map and return it, otherwise
+  // generate a new channel
+  bool update = false;
+  bool notFound = false;
+  Ptr<const MatrixBasedChannelModel::ChannelMatrix> channelMatrix;
+  if (m_channelMap.find (channelId) != m_channelMap.end ())
+    {
+      // channel matrix present in the map
+      NS_LOG_LOGIC ("channel matrix present in the map");
+      channelMatrix = m_channelMap[channelId];
+
+      // check if it has to be updated
+      update = ChannelMatrixNeedsUpdate (channelMatrix);
+    }
+  else
+    {
+      NS_LOG_LOGIC ("channel matrix not found");
+      notFound = true;
+    }
+
+  // If the channel is not present in the map or if it has to be updated
+  // generate a new channel
+  if (notFound || update)
+    {
+      NS_LOG_LOGIC ("channelMatrix notFound=" << notFound << " || update=" << update);
+      channelMatrix = GetNewRTChannel (aMob, bMob, aAntenna);
+
+      // store the channel matrix in the channel map
+      m_channelMap[channelId] = channelMatrix;
+    }
+
+  return channelMatrix;
+}
+
+Ptr<const MatrixBasedChannelModel::ChannelMatrix>
+QdChannelModel::GetNewRTChannel (Ptr<const MobilityModel> aMob,
+                                 Ptr<const MobilityModel> bMob,
+                                 Ptr<const THzDirectionalAntenna> aAntenna) const
+{
+  NS_LOG_FUNCTION (this << aMob << bMob << aAntenna);
+
+  Ptr< MatrixBasedChannelModel::ChannelMatrix> channelParams = Create<MatrixBasedChannelModel::ChannelMatrix> ();
+ // static uint32_t objectCount = 0;     //200
+  uint32_t timestep = GetTimestep ();//objectCount;//GetTimestep ();
+  uint32_t aId = aMob->GetObject<Node> ()->GetId ();
+  uint32_t bId = bMob->GetObject<Node> ()->GetId ();
+  uint32_t channelId = GetKey (aId, bId);
+  //  NS_LOG_DEBUG ("objectCount:" <<objectCount <<
+                // ",timestep=" << timestep <<
+                // ", aId=" << aId <<
+                // ", bId=" << bId <<
+                // ", m_ns3IdToRtIdMap[aId]=" << m_ns3IdToRtIdMap.at (aId) <<
+                // ", m_ns3IdToRtIdMap[bId]=" << m_ns3IdToRtIdMap.at (bId) <<
+                // ", channelId=" << channelId);
+  QdInfo qdInfo = m_qdInfoMap.at (channelId)[timestep];
+
+  // objectCount +=1;
+  //       if(objectCount >= 100)
+  //       {
+  //       objectCount =0;       //240
+  //       }
+  // channel coffecient H[u][s][n];
+  // One Antenna per each device
+  // considering numMPCs cluster
+  MatrixBasedChannelModel::Complex3DVector H;
+
+  H.resize (1);
+  for (uint64_t bIndex = 0; bIndex < 1; bIndex++)
+    {
+      H[bIndex].resize (1);
+      for (uint64_t aIndex = 0; aIndex < 1; aIndex++)
+        {
+          if (qdInfo.numMpcs > 0)
+            {
+              H[bIndex][aIndex].resize (qdInfo.numMpcs, std::complex<double> (0,0));
+            }
+          else
+            {
+              H[bIndex][aIndex].resize (0, std::complex<double> (0,0));
+            }
+        }
+    }
+
+  for (uint64_t mpcIndex = 0; mpcIndex < qdInfo.numMpcs; ++mpcIndex)
+    {
+      double initialPhase = -2 * M_PI * qdInfo.delay_s[mpcIndex] * m_frequency;
+      std::complex<double> pathGain = pow (10, qdInfo.pathGain_dbpow[mpcIndex] / 20);
+      NS_LOG_DEBUG("----------------" <<"VALUE OF GAIN IN RT IS:"<<pathGain <<",:" <<qdInfo.pathGain_dbpow[mpcIndex]);
+      
+      Angles aAngle = Angles (qdInfo.azAod_rad[mpcIndex], qdInfo.elAod_rad[mpcIndex]);
+      NS_LOG_DEBUG ("aAngle: " << aAngle);
+      
+
+     // double TxAntennaPatern = pow (10, aAntenna->GetTxGainDbAngle (aAngle)/20);
+     // double TxAntennaPatern =1; // Applied in TeraSim
+      std::complex<double> ray = pathGain;// std::polar (1.0, initialPhase);
+
+      NS_LOG_DEBUG ("qdInfo.delay_s[mpcIndex]=" << qdInfo.delay_s[mpcIndex] <<
+                    ", qdInfo.phase_rad[mpcIndex]=" << qdInfo.phase_rad[mpcIndex] <<
+                    ", qdInfo.pathGain_dbpow[mpcIndex]=" << qdInfo.pathGain_dbpow[mpcIndex] <<
+                    ", aAngle=" << aAngle <<
+                    ", initialPhase=" << initialPhase <<
+                    ", pathGain=" << pathGain);
+      
+      H[0][0][mpcIndex] += ray;
+                
+    }
+
+  channelParams->m_channel = H;
+  channelParams->m_delay = qdInfo.delay_s;
+
+  channelParams->m_angle.clear ();
+  channelParams->m_angle.push_back (qdInfo.azAoa_rad);
+  channelParams->m_angle.push_back (qdInfo.elAoa_rad);
+  channelParams->m_angle.push_back (qdInfo.azAod_rad);
+  channelParams->m_angle.push_back (qdInfo.elAod_rad);
+
+  channelParams->m_generatedTime = Simulator::Now ();
+  channelParams->m_nodeIds = std::make_pair (aId, bId);
+
+  // std::cout << "H matrix at timestep " << +timestep << std::endl;
+  // for (uint64_t bIndex = 0; bIndex < bSize; ++bIndex)
+  //     {
+  //       for (uint64_t aIndex = 0; aIndex < aSize; ++aIndex)
+  //         {
+  //          std::cout << std::showpos << std::real (H[bIndex][aIndex][0]) << std::imag (H[bIndex][aIndex][0]) << "j,";
+  //         }
+  //       std::cout << ";..." << std::endl;
+  //     }
+
+  return channelParams;
+}
+
+
 
 uint64_t
 QdChannelModel::GetTimestep (void) const
